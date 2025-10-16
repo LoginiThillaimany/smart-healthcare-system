@@ -1,0 +1,38 @@
+### Health Check
+GET http://localhost:5000/
+
+### Register New Patient
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "patient@example.com",
+  "password": "SecurePass123!",
+  "firstName": "John",
+  "lastName": "Doe",
+  "phone": "+94771234567",
+  "dateOfBirth": "1990-01-15",
+  "gender": "Male"
+}
+
+### Login
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "patient@example.com",
+  "password": "SecurePass123!"
+}
+
+### Get Current User (replace YOUR_TOKEN with actual JWT from login)
+GET http://localhost:5000/api/auth/me
+Authorization: Bearer YOUR_TOKEN
+
+### Get All Doctors
+GET http://localhost:5000/api/doctors
+
+### Get All Patients (requires admin/manager token)
+GET http://localhost:5000/api/patients
+
+### Seed Sample Data
+POST http://localhost:5000/api/seed

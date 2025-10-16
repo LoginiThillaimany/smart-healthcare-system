@@ -1,0 +1,69 @@
+.reports-page {
+  padding: 20px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.reports-nav {
+  border-bottom: 1px solid #dee2e6;
+}
+
+.reports-nav .nav-link {
+  color: #6c757d;
+  padding: 10px 20px;
+  border-bottom: 2px solid transparent;
+}
+
+.reports-nav .nav-link.active,
+.reports-nav .nav-link:hover {
+  color: #0d6efd;
+  border-bottom-color: #0d6efd;
+}
+
+.stats-card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.stats-card h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+.chart-card {
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  height: 100%;
+}
+
+.chart-placeholder {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.visits-table thead th {
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.visits-table tbody tr {
+  cursor: pointer;
+}
+
+.visits-table tbody tr:hover {
+  background-color: #f1f3f5;
+}
+
+.user-avatar img {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #dee2e6;
+}
