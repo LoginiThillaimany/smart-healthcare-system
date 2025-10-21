@@ -28,9 +28,9 @@ const Sidebar = () => {
 
   const managerMenuItems = [
     { path: '/admin', icon: '🛠️', label: 'Admin Dashboard' },
+    { path: '/admin/staff', icon: '👔', label: 'Staff Management' },
     { path: '/analytics', icon: '📈', label: 'Analytics' },
     { path: '/reports', icon: '📊', label: 'Reports' },
-    { path: '/staff', icon: '👔', label: 'Staff Management' },
     { path: '/departments', icon: '🏢', label: 'Departments' },
   ];
 

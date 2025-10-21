@@ -23,6 +23,8 @@ const doctorSchema = new mongoose.Schema({
     unique: true,
     lowercase: true
   },
+  // Link to user account (for login)
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   phone: {
     type: String,
     required: true

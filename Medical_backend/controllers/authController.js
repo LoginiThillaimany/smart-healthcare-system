@@ -220,8 +220,9 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Find user with password field
-    const user = await User.findOne({ email }).select('+password');
+    // Find user with password field (normalize email casing)
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
     if (!user) {
       return res.status(401).json({

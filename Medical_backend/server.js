@@ -194,6 +194,7 @@ const patientRoutes = require('./routes/patientRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const staffRoutes = require('./routes/staffRoutes');
 
 // Health check endpoint
 app.get('/', (req, res) => {
@@ -229,6 +230,7 @@ app.use('/api/v1/patients', patientRoutes);          // Use Case 2: Patient Acco
 app.use('/api/v1/doctors', doctorRoutes);            // Supporting routes for doctors
 app.use('/api/v1/payments', paymentRoutes);          // Use Case 3: Payment & Billing Management
 app.use('/api/v1/reports', reportRoutes);            // Use Case 4: Data Analysis & Reporting
+app.use('/api/v1/staff', staffRoutes);               // Admin: Staff management
 
 // Backward compatibility - Non-versioned endpoints (redirect to v1)
 app.use('/api/auth', authRoutes);                 // Authentication & Authorization
@@ -237,6 +239,7 @@ app.use('/api/patients', patientRoutes);          // Use Case 2: Patient Account
 app.use('/api/doctors', doctorRoutes);            // Supporting routes for doctors
 app.use('/api/payments', paymentRoutes);          // Use Case 3: Payment & Billing Management
 app.use('/api/reports', reportRoutes);            // Use Case 4: Data Analysis & Reporting
+app.use('/api/staff', staffRoutes);               // Admin: Staff management (legacy)
 
 // Seed data endpoint (for testing/demo purposes)
 app.post('/api/seed', async (req, res) => {

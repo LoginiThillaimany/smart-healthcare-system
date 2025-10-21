@@ -18,6 +18,7 @@ import ConfirmBooking from './components/ConfirmBooking.jsx';
 import Home from './pages/Home';
 import PatientDashboard from './pages/PatientDashboardNew';
 import AdminDashboard from './pages/AdminDashboard';
+import StaffManagement from './pages/StaffManagement';
 import Payment from './pages/Payment';
 import Reports from './pages/Reports';
 import Login from './pages/Login';
@@ -154,6 +155,13 @@ function AppRoutes() {
         <RoleRoute roles={["admin", "manager"]}>
           <DashboardLayout>
             <AdminDashboard />
+          </DashboardLayout>
+        </RoleRoute>
+      } />
+      <Route path="/admin/staff" element={
+        <RoleRoute roles={["admin", "manager"]}>
+          <DashboardLayout>
+            <StaffManagement />
           </DashboardLayout>
         </RoleRoute>
       } />
