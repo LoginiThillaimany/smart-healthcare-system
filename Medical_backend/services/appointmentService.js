@@ -107,16 +107,28 @@ class AppointmentService {
    * @returns {Promise<Appointment>}
    */
   async getAppointmentById(appointmentId) {
-    const appointment = await Appointment.findById(appointmentId)
-      .populate('patient')
-      .populate('doctor')
-      .populate('payment');
+    try {
+      const appointment = await Appointment.findById(appointmentId)
+        .populate('patient', 'firstName lastName email phone healthCardNumber dateOfBirth gender')
+        .populate('doctor', 'firstName lastName specialty consultationFee phone email hospitalAffiliation')
+        .populate({
+          path: 'payment',
+          select: 'amount status paymentMethod transactionId',
+          strictPopulate: false
+        });
 
-    if (!appointment) {
-      throw new Error('Appointment not found');
+      if (!appointment) {
+        throw new Error('Appointment not found');
+      }
+
+      return appointment;
+    } catch (error) {
+      // If it's a validation error or populate error, throw meaningful message
+      if (error.name === 'CastError') {
+        throw new Error('Invalid appointment ID format');
+      }
+      throw error;
     }
-
-    return appointment;
   }
 
   /**

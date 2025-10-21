@@ -1,11 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import ModernStatCard from '../components/ModernStatCard';
+import ModernAppointmentCard from '../components/ModernAppointmentCard';
+import ModernTable from '../components/ModernTable';
+import EmptyState from '../components/EmptyState';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 
 const Home = () => {
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [allAppointments, setAllAppointments] = useState([]);
   const [userName, setUserName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalAppointments: 0,
+    upcoming: 0,
+    completed: 0,
+    cancelled: 0
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,14 +26,35 @@ const Home = () => {
     const patient = JSON.parse(localStorage.getItem('patient') || '{}');
     setUserName(patient.fullName || user.email || 'Guest');
 
-    // Fetch upcoming appointments
-    api.get('/appointments?status=Scheduled')
-      .then(res => {
-        const upcoming = res.data.data?.slice(0, 3) || [];
+    // Fetch appointments with loading state
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const res = await api.get('/appointments');
+        const appointments = res.data.data || [];
+        
+        // Calculate stats
+        setStats({
+          totalAppointments: appointments.length,
+          upcoming: appointments.filter(a => a.status === 'Scheduled' || a.status === 'Confirmed').length,
+          completed: appointments.filter(a => a.status === 'Completed').length,
+          cancelled: appointments.filter(a => a.status === 'Cancelled').length
+        });
+        
+        // Set appointments
+        const upcoming = appointments
+          .filter(a => a.status === 'Scheduled' || a.status === 'Confirmed')
+          .slice(0, 3);
         setUpcomingAppointments(upcoming);
-        setAllAppointments(res.data.data || []);
-      })
-      .catch(err => console.error('Error fetching appointments:', err));
+        setAllAppointments(appointments);
+      } catch (err) {
+        console.error('Error fetching appointments:', err);
+      } finally {
+        setTimeout(() => setLoading(false), 800); // Smooth loading transition
+      }
+    };
+    
+    fetchData();
   }, []);
 
   const getStatusColor = (status) => {
@@ -50,181 +83,184 @@ const Home = () => {
   };
 
   return (
-    <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-2">Welcome back, {userName}! Here's your health overview.</p>
+    <div className="animate-fade-in">
+      {/* Modern Page Header */}
+      <div className="mb-12">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+            <span className="text-2xl">👋</span>
+          </div>
+          <div>
+            <h1 className="page-header mb-0">Welcome back, {userName}!</h1>
+            <p className="page-subheader">Here's your health overview for today</p>
+          </div>
+        </div>
       </div>
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Link to="/book-appointment" className="card hover:scale-105 transform transition-all medical-gradient text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-90">Book New</p>
-                <h3 className="text-xl font-bold">Appointment</h3>
-              </div>
-              <span className="text-3xl">📅</span>
-            </div>
-          </Link>
+      
+      {/* Modern Stat Cards with Animated Counters */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {loading ? (
+          <LoadingSkeleton type="stat" count={4} />
+        ) : (
+          <>
+            <ModernStatCard
+              icon="📋"
+              label="Total Appointments"
+              value={stats.totalAppointments}
+              change={12}
+              trend="up"
+              color="emerald"
+              delay={0}
+            />
+            <ModernStatCard
+              icon="📅"
+              label="Upcoming"
+              value={stats.upcoming}
+              change={8}
+              trend="up"
+              color="blue"
+              delay={100}
+            />
+            <ModernStatCard
+              icon="✅"
+              label="Completed"
+              value={stats.completed}
+              change={15}
+              trend="up"
+              color="purple"
+              delay={200}
+            />
+            <ModernStatCard
+              icon="❌"
+              label="Cancelled"
+              value={stats.cancelled}
+              change={5}
+              trend="down"
+              color="orange"
+              delay={300}
+            />
+          </>
+        )}
+      </div>
 
-          <Link to="/patient-dashboard" className="card hover:scale-105 transform transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">View Your</p>
-                <h3 className="text-xl font-bold text-gray-900">Profile</h3>
-              </div>
-              <span className="text-3xl">👤</span>
+      {/* Quick Actions - Modern Glass Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <Link 
+          to="/book-appointment" 
+          className="group relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div className="relative flex items-center justify-between">
+            <div>
+              <p className="text-sm opacity-90 font-medium mb-1">Book New</p>
+              <h3 className="text-xl font-bold">Appointment</h3>
             </div>
-          </Link>
+            <span className="text-4xl transform group-hover:scale-110 transition-transform">📅</span>
+          </div>
+        </Link>
 
-          <Link to="/payment" className="card hover:scale-105 transform transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Make</p>
-                <h3 className="text-xl font-bold text-gray-900">Payment</h3>
-              </div>
-              <span className="text-3xl">💳</span>
+        <Link 
+          to="/patient-dashboard" 
+          className="group glass-effect rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 border-slate-200 hover:border-emerald-300"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-600 font-medium mb-1">View Your</p>
+              <h3 className="text-xl font-bold text-slate-900">Profile</h3>
             </div>
-          </Link>
+            <span className="text-4xl transform group-hover:scale-110 transition-transform">👤</span>
+          </div>
+        </Link>
 
-          <Link to="/reports" className="card hover:scale-105 transform transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">View</p>
-                <h3 className="text-xl font-bold text-gray-900">Reports</h3>
-              </div>
-              <span className="text-3xl">📊</span>
+        <Link 
+          to="/payment" 
+          className="group glass-effect rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 border-slate-200 hover:border-emerald-300"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-600 font-medium mb-1">Make</p>
+              <h3 className="text-xl font-bold text-slate-900">Payment</h3>
             </div>
+            <span className="text-4xl transform group-hover:scale-110 transition-transform">💳</span>
+          </div>
+        </Link>
+
+        <Link 
+          to="/reports" 
+          className="group glass-effect rounded-2xl p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 border-slate-200 hover:border-emerald-300"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-600 font-medium mb-1">View</p>
+              <h3 className="text-xl font-bold text-slate-900">Reports</h3>
+            </div>
+            <span className="text-4xl transform group-hover:scale-110 transition-transform">📊</span>
+          </div>
+        </Link>
+      </div>
+
+      {/* Upcoming Appointments - Modern Cards */}
+      <div className="mb-12">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-1">Upcoming Appointments</h2>
+            <p className="text-slate-600">Your scheduled healthcare visits</p>
+          </div>
+          <Link to="/book-appointment" className="btn-secondary">
+            + New Appointment
           </Link>
         </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {loading ? (
+            <LoadingSkeleton type="appointment" count={3} />
+          ) : upcomingAppointments.length > 0 ? (
+            upcomingAppointments.map((apt, idx) => (
+              <ModernAppointmentCard 
+                key={apt._id || idx}
+                appointment={apt}
+                index={idx}
+              />
+            ))
+          ) : (
+            <div className="col-span-3">
+              <EmptyState
+                icon="📅"
+                title="No upcoming appointments"
+                description="You don't have any scheduled appointments. Book one to get started with your healthcare journey."
+                actionLabel="Book Your First Appointment"
+                actionLink="/book-appointment"
+              />
+            </div>
+          )}
+        </div>
+      </div>
 
-        {/* Upcoming Appointments */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">Upcoming Appointments</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {upcomingAppointments.length > 0 ? (
-              upcomingAppointments.map((apt, idx) => (
-                <div key={apt._id || idx} className="card">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <p className="text-sm text-gray-600">
-                        {formatDate(apt.appointmentDate)}
-                      </p>
-                      <h3 className="text-lg font-semibold text-gray-900 mt-1">
-                        Dr. {apt.doctor?.firstName} {apt.doctor?.lastName}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {apt.doctor?.specialty || 'General'}
-                      </p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(apt.status)}`}>
-                      {apt.status}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm text-gray-600 mt-3 pt-3 border-t border-gray-200">
-                    <span className="mr-2">🕐</span>
-                    <span>{apt.timeSlot}</span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="col-span-3 card text-center py-12">
-                <span className="text-6xl mb-4 block">📅</span>
-                <p className="text-gray-600 mb-4">No upcoming appointments</p>
-                <Link to="/book-appointment" className="btn-primary inline-block">
-                  Book Your First Appointment
-                </Link>
-              </div>
-            )}
+      {/* All Appointments - Modern Table */}
+      <div className="mb-12">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-1">All Appointments</h2>
+            <p className="text-slate-600">Complete history of your visits</p>
           </div>
         </div>
 
-        {/* All Appointments Table */}
-        <div className="card">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">All Appointments</h2>
-            <Link to="/book-appointment" className="btn-primary">
-              + Book New Appointment
-            </Link>
+        {loading ? (
+          <div className="card">
+            <LoadingSkeleton type="table" count={5} />
           </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Doctor
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Hospital
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {allAppointments.length > 0 ? (
-                  allAppointments.map((apt) => (
-                    <tr key={apt._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(apt.appointmentDate)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          Dr. {apt.doctor?.firstName} {apt.doctor?.lastName}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {apt.doctor?.specialty}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {apt.doctor?.hospitalAffiliation || 'General Hospital'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(apt.status)}`}>
-                          {apt.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <Link to={`/appointments/${apt._id}`} className="text-blue-600 hover:text-blue-900" title="View Details">
-                            👁️ View
-                          </Link>
-                          <Link to={`/appointments/${apt._id}`} className="text-gray-600 hover:text-gray-900" title="Edit">
-                            ✏️ Edit
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center">
-                      <div className="text-gray-400">
-                        <span className="text-4xl block mb-3">📋</span>
-                        <p>No appointments found</p>
-                        <Link to="/book-appointment" className="text-blue-600 hover:text-blue-700 mt-2 inline-block">
-                          Book your first appointment →
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        ) : allAppointments.length > 0 ? (
+          <ModernTable appointments={allAppointments} loading={false} />
+        ) : (
+          <EmptyState
+            icon="📋"
+            title="No appointment history"
+            description="Your appointment history will appear here once you schedule your first visit."
+            actionLabel="Book Your First Appointment"
+            actionLink="/book-appointment"
+          />
+        )}
+      </div>
 
       {/* Footer */}
       <div className="mt-8 text-center text-sm text-gray-500">

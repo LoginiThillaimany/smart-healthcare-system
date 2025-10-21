@@ -73,9 +73,11 @@ class AppointmentController {
         data: appointments
       });
     } catch (error) {
+      console.error('Error fetching appointments:', error);
       res.status(500).json({
         success: false,
-        message: error.message
+        message: 'Failed to fetch appointments. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   }
@@ -93,9 +95,12 @@ class AppointmentController {
         data: appointment
       });
     } catch (error) {
-      res.status(404).json({
+      console.error('Error fetching appointment by ID:', error);
+      const statusCode = error.message.includes('Invalid') ? 400 : 404;
+      res.status(statusCode).json({
         success: false,
-        message: error.message
+        message: error.message,
+        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }
@@ -126,13 +131,15 @@ class AppointmentController {
 
   /**
    * Cancel appointment
-   * POST /api/appointments/:id/cancel
+   * POST/PUT /api/appointments/:id/cancel
    */
   async cancelAppointment(req, res) {
     try {
-      const { reason, cancelledBy } = req.body;
+      // Support both "reason" and "cancellationReason" field names
+      const { reason, cancellationReason, cancelledBy } = req.body;
+      const cancelReason = reason || cancellationReason;
 
-      if (!reason) {
+      if (!cancelReason) {
         return res.status(400).json({
           success: false,
           message: 'Cancellation reason is required'
@@ -141,7 +148,7 @@ class AppointmentController {
 
       const appointment = await appointmentService.cancelAppointment(
         req.params.id,
-        reason,
+        cancelReason,
         cancelledBy || 'Patient'
       );
 

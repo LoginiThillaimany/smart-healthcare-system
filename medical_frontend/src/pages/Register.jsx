@@ -39,7 +39,7 @@ const Register = () => {
   };
 
   const getPasswordStrengthColor = () => {
-    const colors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-emerald-500', 'bg-green-600'];
+    const colors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-blue-600'];
     return colors[passwordStrength];
   };
 
@@ -54,7 +54,21 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    // Validation
+    console.log('🚀 Registration attempt started');
+    console.log('📝 Form data:', { ...formData, password: '***', confirmPassword: '***' });
+
+    // Enhanced validation
+    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
+      const missingFields = [];
+      if (!formData.email) missingFields.push('Email');
+      if (!formData.password) missingFields.push('Password');
+      if (!formData.firstName) missingFields.push('First Name');
+      if (!formData.lastName) missingFields.push('Last Name');
+      
+      setError(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -65,12 +79,52 @@ const Register = () => {
       return;
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    // Phone validation
+    const phoneRegex = /^\+?[\d\s-()]+$/;
+    if (!phoneRegex.test(formData.phone)) {
+      setError('Please enter a valid phone number');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { confirmPassword, ...registerData } = formData;
       
-      const response = await axios.post('http://localhost:5000/api/auth/register', registerData);
+      // Add default address if not provided
+      const dataToSend = {
+        ...registerData,
+        address: {
+          street: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          country: 'Sri Lanka'
+        }
+      };
+      
+      // Use versioned API endpoint (recommended)
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const REGISTER_ENDPOINT = `${API_BASE_URL}/api/v1/auth/register`;
+      
+      console.log('📤 Sending registration request to:', REGISTER_ENDPOINT);
+      console.log('📦 Request payload:', { ...dataToSend, password: '***' });
+
+      const response = await axios.post(REGISTER_ENDPOINT, dataToSend, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        timeout: 10000, // 10 second timeout
+      });
+
+      console.log('✅ Registration successful:', response.data);
 
       // Store token and user data
       localStorage.setItem('token', response.data.data.token);
@@ -81,32 +135,62 @@ const Register = () => {
       alert(`Registration successful! Your Health Card Number: ${response.data.data.patient.healthCardNumber}`);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      console.error('❌ Registration failed:', err);
+      
+      // Enhanced error handling
+      if (err.response) {
+        // Server responded with error status
+        console.error('📥 Server response:', err.response.data);
+        console.error('📊 Status code:', err.response.status);
+        
+        const errorMessage = err.response.data?.message || 'Registration failed. Please try again.';
+        
+        // Handle specific error cases
+        if (err.response.status === 409 || errorMessage.includes('already registered')) {
+          setError('This email is already registered. Please use a different email or try logging in.');
+        } else if (err.response.status === 400) {
+          setError(errorMessage);
+        } else if (err.response.status === 500) {
+          setError('Server error occurred. Please try again later.');
+        } else {
+          setError(errorMessage);
+        }
+      } else if (err.request) {
+        // Network error
+        console.error('🌐 Network error:', err.request);
+        setError('Network error. Please check your internet connection and try again.');
+      } else {
+        // Other error
+        console.error('🔧 Error:', err.message);
+        setError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-bg py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-sky-50 py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-96 h-96 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-20 left-10 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-sky-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
       </div>
       <div className="max-w-2xl w-full relative z-10">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-              <span className="text-3xl">🏥</span>
-            </div>
+        {/* Header with Logo */}
+        <div className="text-center mb-10">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/logo.svg" 
+              alt="MedicalCare Logo" 
+              className="h-16 w-auto"
+            />
           </div>
-          <h2 className="text-4xl font-extrabold text-gray-900">
+          <h2 className="text-4xl font-extrabold text-blue-900 mb-3">
             Create Your Account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="text-base text-gray-600">
             Join our healthcare system to manage your health records
           </p>
         </div>
@@ -119,14 +203,14 @@ const Register = () => {
           </div>
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div 
-              className="h-full medical-gradient transition-all duration-500 ease-out"
+              className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-500 ease-out"
               style={{ width: `${(step / 2) * 100}%` }}
             ></div>
           </div>
         </div>
 
         {/* Register Card - Enhanced Glass Effect */}
-        <div className="bg-white/30 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/40">
+        <div className="bg-white/40 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-blue-200/30">
           {/* Error Message */}
           {error && (
             <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
@@ -148,7 +232,7 @@ const Register = () => {
             {/* Personal Information Section */}
             <div className={step === 1 ? 'block' : 'hidden'}>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <span className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mr-2">1</span>
+                <span className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-2">1</span>
                 Personal Information
               </h3>
               
@@ -244,7 +328,7 @@ const Register = () => {
             {/* Account Information Section */}
             <div className={step === 2 ? 'block' : 'hidden'}>
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <span className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mr-2">2</span>
+                <span className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-2">2</span>
                 Account Information
               </h3>
               
@@ -356,7 +440,7 @@ const Register = () => {
                     <p className="mt-1 text-xs text-red-600">Passwords do not match</p>
                   )}
                   {formData.confirmPassword && formData.password === formData.confirmPassword && (
-                    <p className="mt-1 text-xs text-emerald-600 flex items-center">
+                    <p className="mt-1 text-xs text-blue-600 flex items-center">
                       <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>

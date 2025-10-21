@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       setUser(userData);
-      return { success: true };
+      return { success: true, user: userData, patient: patientData };
     } catch (error) {
       return {
         success: false,

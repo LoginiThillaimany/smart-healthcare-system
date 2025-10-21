@@ -21,65 +21,184 @@ exports.register = async (req, res) => {
   try {
     const { email, password, firstName, lastName, phone, dateOfBirth, gender, address } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    console.log('🚀 Registration attempt for email:', email);
+    console.log('📝 Request body:', { ...req.body, password: '***' });
+
+    // Enhanced input validation
+    const requiredFields = { email, password, firstName, lastName, phone, dateOfBirth, gender };
+    const missingFields = Object.keys(requiredFields).filter(field => !requiredFields[field]);
+    
+    if (missingFields.length > 0) {
+      console.log('❌ Missing required fields:', missingFields);
       return res.status(400).json({
         success: false,
-        message: 'Email already registered'
+        message: `Missing required fields: ${missingFields.join(', ')}`,
+        missingFields
       });
     }
 
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.log('❌ Invalid email format:', email);
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address'
+      });
+    }
+
+    // Password strength validation
+    if (password.length < 8) {
+      console.log('❌ Password too short');
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long'
+      });
+    }
+
+    // Phone validation
+    const phoneRegex = /^\+?[\d\s-()]+$/;
+    if (!phoneRegex.test(phone)) {
+      console.log('❌ Invalid phone format:', phone);
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid phone number'
+      });
+    }
+
+    // Date of birth validation
+    const birthDate = new Date(dateOfBirth);
+    if (isNaN(birthDate.getTime()) || birthDate >= new Date()) {
+      console.log('❌ Invalid date of birth:', dateOfBirth);
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid date of birth in the past'
+      });
+    }
+
+    // Check if user already exists
+    console.log('🔍 Checking for existing user with email:', email);
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      console.log('❌ User already exists with email:', email);
+      return res.status(409).json({
+        success: false,
+        message: 'Email already registered. Please use a different email or try logging in.'
+      });
+    }
+
+    // Check if patient already exists (additional safety check)
+    const existingPatient = await Patient.findOne({ email: email.toLowerCase() });
+    if (existingPatient) {
+      console.log('❌ Patient already exists with email:', email);
+      return res.status(409).json({
+        success: false,
+        message: 'Email already registered. Please use a different email or try logging in.'
+      });
+    }
+
+    console.log('✅ Email is available, creating user account...');
+
     // Create user account
     const user = await User.create({
-      email,
+      email: email.toLowerCase(),
       password,
       role: 'patient',
       isVerified: false // Will be verified via email
     });
 
+    console.log('✅ User account created with ID:', user._id);
+
     // Generate unique health card number
     const healthCardNumber = `HC${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    console.log('🆔 Generated health card number:', healthCardNumber);
 
     // Create patient profile
     const patient = await Patient.create({
       userId: user._id,
-      firstName,
-      lastName,
-      email,
-      phone,
-      dateOfBirth,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.toLowerCase(),
+      phone: phone.trim(),
+      dateOfBirth: birthDate,
       gender,
-      address,
+      address: address || {
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'Sri Lanka'
+      },
       healthCardNumber
     });
 
+    console.log('✅ Patient profile created with ID:', patient._id);
+
     // Generate token
     const token = generateToken(user._id);
+    console.log('✅ JWT token generated');
 
-    res.status(201).json({
+    const responseData = {
       success: true,
-      message: 'Registration successful',
+      message: 'Registration successful! Welcome to our healthcare system.',
       data: {
         token,
         user: {
           id: user._id,
           email: user.email,
-          role: user.role
+          role: user.role,
+          isVerified: user.isVerified
         },
         patient: {
           id: patient._id,
           fullName: patient.fullName,
-          healthCardNumber: patient.healthCardNumber
+          healthCardNumber: patient.healthCardNumber,
+          firstName: patient.firstName,
+          lastName: patient.lastName,
+          email: patient.email,
+          phone: patient.phone
         }
       }
-    });
+    };
+
+    console.log('✅ Registration successful for:', email);
+    res.status(201).json(responseData);
+
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('❌ Registration error:', error);
+    
+    // Handle specific MongoDB errors
+    if (error.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(error.keyPattern)[0];
+      console.error('❌ Duplicate key error on field:', field);
+      
+      return res.status(409).json({
+        success: false,
+        message: field === 'email' 
+          ? 'Email already registered. Please use a different email or try logging in.'
+          : `${field} already exists. Please use a different value.`
+      });
+    }
+
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      console.error('❌ Validation error:', error.message);
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: validationErrors
+      });
+    }
+
+    // Handle other errors
+    console.error('❌ Unexpected error during registration:', error.stack);
     res.status(500).json({
       success: false,
-      message: 'Registration failed',
-      error: error.message
+      message: 'Registration failed due to server error. Please try again later.',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -359,7 +478,7 @@ exports.updatePassword = async (req, res) => {
     const token = generateToken(user._id);
 
     res.status(200).json({
-      success: false,
+      success: true,
       message: 'Password updated successfully',
       data: { token }
     });

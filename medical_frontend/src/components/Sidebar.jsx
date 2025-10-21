@@ -27,6 +27,7 @@ const Sidebar = () => {
   ];
 
   const managerMenuItems = [
+    { path: '/admin', icon: '🛠️', label: 'Admin Dashboard' },
     { path: '/analytics', icon: '📈', label: 'Analytics' },
     { path: '/reports', icon: '📊', label: 'Reports' },
     { path: '/staff', icon: '👔', label: 'Staff Management' },
@@ -48,8 +49,8 @@ const Sidebar = () => {
   const menuItems = getMenuItems();
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen sticky top-16 hidden lg:block">
-      <nav className="p-4 space-y-2">
+    <aside className="w-64 bg-white border-r-2 border-gray-200 min-h-full sticky top-0 hidden lg:block">
+      <nav className="p-8 space-y-3">
         {menuItems.map((item) => (
           <Link
             key={item.path}

@@ -11,6 +11,37 @@ const {
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 
+// Base route - API info
+router.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Authentication API',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      register: 'POST /register',
+      login: 'POST /login',
+      me: 'GET /me (Protected)',
+      logout: 'POST /logout (Protected)',
+      forgotPassword: 'POST /forgot-password',
+      resetPassword: 'PUT /reset-password/:token',
+      updatePassword: 'PUT /update-password (Protected)',
+      test: 'GET /test'
+    }
+  });
+});
+
+// Test route for debugging
+router.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Auth API working',
+    timestamp: new Date().toISOString(),
+    server: 'Healthcare System Backend',
+    version: '1.0.0'
+  });
+});
+
 // Public routes
 router.post('/register', register);
 router.post('/login', login);

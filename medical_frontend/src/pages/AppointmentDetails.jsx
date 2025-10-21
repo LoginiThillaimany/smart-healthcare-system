@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 
 const AppointmentDetails = () => {
   const { id } = useParams();
@@ -76,10 +77,28 @@ const AppointmentDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading appointment details...</p>
+      <div className="animate-fade-in">
+        <div className="mb-8">
+          <div className="h-8 w-48 skeleton rounded mb-2"></div>
+          <div className="h-4 w-64 skeleton rounded"></div>
+        </div>
+        <div className="space-y-6">
+          <div className="card">
+            <div className="h-6 w-40 skeleton rounded mb-4"></div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="h-20 skeleton rounded"></div>
+              <div className="h-20 skeleton rounded"></div>
+              <div className="h-20 skeleton rounded"></div>
+              <div className="h-20 skeleton rounded"></div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="h-6 w-40 skeleton rounded mb-4"></div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="h-20 skeleton rounded"></div>
+              <div className="h-20 skeleton rounded"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -87,11 +106,15 @@ const AppointmentDetails = () => {
 
   if (!appointment) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center justify-center py-20 animate-fade-in">
         <div className="card max-w-md text-center">
-          <span className="text-6xl mb-4 block">❌</span>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Appointment Not Found</h2>
-          <Link to="/" className="btn-primary inline-block">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
+            <span className="text-4xl">❌</span>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-3">Appointment Not Found</h2>
+          <p className="text-slate-600 mb-6">The appointment you're looking for doesn't exist or has been removed.</p>
+          <Link to="/" className="btn-primary inline-flex items-center gap-2">
+            <span>←</span>
             Back to Dashboard
           </Link>
         </div>
@@ -101,51 +124,72 @@ const AppointmentDetails = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      'Scheduled': 'bg-blue-100 text-blue-800',
-      'Confirmed': 'bg-green-100 text-green-800',
-      'Completed': 'bg-gray-100 text-gray-800',
-      'Cancelled': 'bg-red-100 text-red-800',
-      'In-Progress': 'bg-yellow-100 text-yellow-800'
+      'Scheduled': 'badge-info',
+      'Confirmed': 'badge-success',
+      'Completed': 'bg-slate-100 text-slate-700 border-slate-300',
+      'Cancelled': 'badge-danger',
+      'In-Progress': 'badge-warning'
     };
-    return colors[status] || 'bg-gray-100 text-gray-800';
+    return colors[status] || 'badge-info';
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-6">
-          <Link to="/" className="text-blue-600 hover:text-blue-700 flex items-center mb-4">
-            <span className="mr-2">←</span> Back to Dashboard
-          </Link>
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Appointment Details</h1>
-              <p className="text-gray-600 mt-1">View and manage your appointment</p>
+    <div className="animate-fade-in">
+      {/* Modern Header */}
+      <div className="mb-10">
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 font-semibold mb-6 transition-colors group"
+        >
+          <span className="transform group-hover:-translate-x-1 transition-transform">←</span>
+          <span>Back to Dashboard</span>
+        </Link>
+        
+        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-3xl">📋</span>
             </div>
-            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(appointment.status)}`}>
-              {appointment.status}
-            </span>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 mb-2">Appointment Details</h1>
+              <p className="text-slate-600 text-lg">View and manage your healthcare appointment</p>
+            </div>
+          </div>
+          <span className={`badge ${getStatusColor(appointment.status)} whitespace-nowrap self-start md:self-auto`}>
+            {appointment.status}
+          </span>
+        </div>
+      </div>
+
+      {/* Modern Alert Messages */}
+      {error && (
+        <div className="mb-6 bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-5 rounded-xl animate-slide-up">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <h4 className="font-semibold text-red-900 mb-1">Error</h4>
+              <p className="text-red-700">{error}</p>
+            </div>
           </div>
         </div>
+      )}
 
-        {/* Messages */}
-        {error && (
-          <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-            <p className="text-red-700">{error}</p>
+      {success && (
+        <div className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-100 border-l-4 border-emerald-500 p-5 rounded-xl animate-slide-up">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">✅</span>
+            <div>
+              <h4 className="font-semibold text-emerald-900 mb-1">Success</h4>
+              <p className="text-emerald-700">{success}</p>
+            </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {success && (
-          <div className="mb-4 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
-            <p className="text-green-700">{success}</p>
-          </div>
-        )}
-
-        {/* Content */}
-        {isEditing ? (
-          /* Edit Form */
-          <div className="card">
+      {/* Content */}
+      {isEditing ? (
+        /* Edit Form */
+        <div className="card">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Edit Appointment</h2>
             <form onSubmit={handleUpdate} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -215,98 +259,167 @@ const AppointmentDetails = () => {
         ) : (
           /* View Details */
           <div className="space-y-6">
-            {/* Doctor Information */}
-            <div className="card">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Doctor Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <p className="text-sm text-gray-600">Doctor Name</p>
-                  <p className="text-lg font-semibold text-gray-900">
+            {/* Modern Doctor Information Card */}
+            <div className="card group hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-sky-400 to-cyan-500 flex items-center justify-center">
+                  <span className="text-2xl">👨‍⚕️</span>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900">Doctor Information</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Doctor Name</p>
+                  <p className="text-xl font-bold text-slate-900">
                     Dr. {appointment.doctor?.firstName} {appointment.doctor?.lastName}
                   </p>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Specialty</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {appointment.doctor?.specialty || 'General'}
-                  </p>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Specialty</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🩺</span>
+                    <p className="text-xl font-bold text-slate-900">
+                      {appointment.doctor?.specialty || 'General'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Hospital</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {appointment.doctor?.hospitalAffiliation || 'General Hospital'}
-                  </p>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Hospital</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🏥</span>
+                    <p className="text-lg font-semibold text-slate-900">
+                      {appointment.doctor?.hospitalAffiliation || 'General Hospital'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Contact</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {appointment.doctor?.phone || 'N/A'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Appointment Details */}
-            <div className="card">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Appointment Details</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <p className="text-sm text-gray-600">Date</p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {new Date(appointment.appointmentDate).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Time</p>
-                  <p className="text-lg font-semibold text-gray-900">{appointment.timeSlot}</p>
-                </div>
-                <div className="md:col-span-2">
-                  <p className="text-sm text-gray-600">Reason for Visit</p>
-                  <p className="text-lg text-gray-900">{appointment.reason}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Type</p>
-                  <p className="text-lg font-semibold text-gray-900">{appointment.appointmentType}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Booking Date</p>
-                  <p className="text-lg text-gray-900">
-                    {new Date(appointment.createdAt).toLocaleDateString()}
-                  </p>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Contact</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📞</span>
+                    <p className="text-lg font-semibold text-emerald-600">
+                      {appointment.doctor?.phone || 'N/A'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Actions */}
+            {/* Modern Appointment Details Card */}
+            <div className="card group hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
+                  <span className="text-2xl">📅</span>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900">Appointment Details</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Date</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📆</span>
+                    <p className="text-lg font-bold text-slate-900">
+                      {new Date(appointment.appointmentDate).toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Time</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🕐</span>
+                    <p className="text-lg font-bold text-slate-900">{appointment.timeSlot}</p>
+                  </div>
+                </div>
+                <div className="md:col-span-2 space-y-1">
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Reason for Visit</p>
+                  <div className="flex items-start gap-2">
+                    <span className="text-lg">📝</span>
+                    <p className="text-lg text-slate-900">{appointment.reason}</p>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Type</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{appointment.appointmentType === 'In-person' ? '🏥' : '💻'}</span>
+                    <p className="text-lg font-semibold text-slate-900">{appointment.appointmentType}</p>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-500 uppercase tracking-wide">Booking Date</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">📌</span>
+                    <p className="text-lg text-slate-600">
+                      {new Date(appointment.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modern Actions Card */}
             <div className="card">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Actions</h2>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                  <span className="text-2xl">⚡</span>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900">Quick Actions</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {appointment.status !== 'Cancelled' && appointment.status !== 'Completed' && (
                   <>
-                    <button onClick={() => setIsEditing(true)} className="btn-primary">
-                      ✏️ Edit Appointment
+                    <button 
+                      onClick={() => setIsEditing(true)} 
+                      className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-semibold hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <div className="relative flex items-center justify-center gap-2">
+                        <span className="text-xl">✏️</span>
+                        <span>Edit Appointment</span>
+                      </div>
                     </button>
-                    <button onClick={handleCancel} className="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition-all font-semibold">
-                      🚫 Cancel Appointment
+                    <button 
+                      onClick={handleCancel} 
+                      className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-semibold hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                      <div className="relative flex items-center justify-center gap-2">
+                        <span className="text-xl">🚫</span>
+                        <span>Cancel Appointment</span>
+                      </div>
                     </button>
                   </>
                 )}
-                <button onClick={handleDelete} className="btn-danger">
-                  🗑️ Delete Appointment
+                <button 
+                  onClick={handleDelete} 
+                  className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-red-500 to-pink-600 text-white font-semibold hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="relative flex items-center justify-center gap-2">
+                    <span className="text-xl">🗑️</span>
+                    <span>Delete Appointment</span>
+                  </div>
                 </button>
-                <Link to="/payment" className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-all font-semibold">
-                  💳 Make Payment
+                <Link 
+                  to="/payment" 
+                  className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-green-500 to-emerald-600 text-white font-semibold hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex items-center justify-center"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="relative flex items-center gap-2">
+                    <span className="text-xl">💳</span>
+                    <span>Make Payment</span>
+                  </div>
                 </Link>
               </div>
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 };

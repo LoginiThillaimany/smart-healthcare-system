@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 450">
+  <!-- Stethoscope Main Body -->
+  <path d="M 120 80 Q 120 50, 150 50 Q 180 50, 180 80" 
+        stroke="#1e3a8a" stroke-width="16" fill="none" stroke-linecap="round"/>
+  
+  <path d="M 120 80 L 120 200 Q 120 240, 150 260" 
+        stroke="#1e3a8a" stroke-width="14" fill="none"/>
+  
+  <path d="M 180 80 L 180 200 Q 180 240, 150 260" 
+        stroke="#1e3a8a" stroke-width="14" fill="none"/>
+  
+  <!-- Stethoscope Earpieces -->
+  <circle cx="120" cy="55" r="12" fill="#1e3a8a"/>
+  <circle cx="180" cy="55" r="12" fill="#1e3a8a"/>
+  
+  <!-- Stethoscope Chest Piece -->
+  <circle cx="150" cy="260" r="35" fill="#1e3a8a" stroke="#1e3a8a" stroke-width="3"/>
+  <circle cx="150" cy="260" r="20" fill="white"/>
+  <circle cx="150" cy="260" r="10" fill="#1e3a8a"/>
+  
+  <!-- Medical Cross Top Right -->
+  <rect x="270" y="90" width="80" height="25" rx="4" fill="#3b82f6"/>
+  <rect x="302" y="58" width="25" height="90" rx="4" fill="#3b82f6"/>
+  
+  <!-- Medical Cross Bottom Left -->
+  <rect x="60" y="210" width="60" height="20" rx="3" fill="#3b82f6"/>
+  <rect x="80" y="190" width="20" height="60" rx="3" fill="#3b82f6"/>
+  
+  <!-- Text MEDICALCARE -->
+  <text x="200" y="380" font-family="'Arial Black', Arial, sans-serif" font-size="48" font-weight="900" fill="#1e3a8a" text-anchor="middle" letter-spacing="0">MEDICALCARE</text>
+</svg>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -12,6 +12,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // Check for saved credentials
   useEffect(() => {
@@ -35,14 +36,9 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
-
-      // Store token and user data
-      localStorage.setItem('token', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
-      
-      if (response.data.data.patient) {
-        localStorage.setItem('patient', JSON.stringify(response.data.data.patient));
+      const result = await login(formData.email, formData.password);
+      if (!result.success) {
+        throw new Error(result.message || 'Login failed');
       }
 
       // Remember email if checkbox is checked
@@ -54,41 +50,68 @@ const Login = () => {
 
       // Success animation before redirect
       setTimeout(() => {
-        navigate('/');
+        if (result.patient || result.user?.role === 'patient') {
+          navigate('/patient-dashboard');
+        } else if (result.user?.role === 'doctor') {
+          navigate('/doctor-dashboard');
+        } else if (result.user?.role === 'admin' || result.user?.role === 'manager') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       }, 500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-bg py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Animated Background Elements */}
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    }}>
+      {/* Animated Background Patterns */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-teal-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-cyan-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-20 left-10 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-96 h-96 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
       </div>
-      <div className="max-w-md w-full relative z-10">
-        {/* Header */}
+
+      {/* Beautiful Login Container */}
+      <div className="max-w-md w-full mx-4 relative z-10">
+        {/* Decorative Top Element */}
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 medical-gradient rounded-full flex items-center justify-center shadow-lg">
-              <span className="text-3xl">🏥</span>
+          {/* Small Logo with Glow Effect */}
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <div className="absolute inset-0 bg-white rounded-full blur-xl opacity-50"></div>
+              <div className="relative bg-white rounded-full p-3 shadow-2xl">
+                <img 
+                  src="/logo.svg" 
+                  alt="MedicalCare Logo" 
+                  className="h-12 w-12 object-contain"
+                />
+              </div>
             </div>
           </div>
-          <h2 className="text-4xl font-extrabold text-gray-900">
+          
+          {/* Welcome Text */}
+          <h1 className="text-4xl font-bold text-white mb-3 drop-shadow-lg">
             Welcome Back
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in to access your healthcare dashboard
+          </h1>
+          <p className="text-purple-100 text-lg">
+            Sign in to your healthcare account
           </p>
         </div>
 
-        {/* Login Card - Enhanced Glass Effect */}
-        <div className="bg-white/30 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/40">
+        {/* Stunning Glass Card Container */}
+        <div className="relative">
+          {/* Glow Effect Behind Card */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-3xl blur opacity-25"></div>
+          
+          {/* Main Card */}
+          <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/50">
           {/* Error Message */}
           {error && (
             <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
@@ -170,17 +193,17 @@ const Login = () => {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded cursor-pointer"
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded cursor-pointer"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer">
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer font-medium">
                   Remember me
                 </label>
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-emerald-600 hover:text-emerald-500 transition-colors">
+                <Link to="/forgot-password" className="font-semibold text-purple-600 hover:text-purple-700 transition-colors">
                   Forgot password?
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -188,26 +211,27 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-primary group relative overflow-hidden"
+              className="w-full py-4 px-6 rounded-xl font-bold text-white text-lg shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              }}
             >
-              <span className="relative z-10 flex items-center justify-center">
-                {loading ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    Sign In
-                    <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </>
-                )}
-              </span>
+              {loading ? (
+                <div className="flex justify-center items-center gap-3">
+                  <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Signing in...</span>
+                </div>
+              ) : (
+                <div className="flex justify-center items-center gap-2">
+                  <span>Sign In</span>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </div>
+              )}
             </button>
           </form>
 
@@ -225,28 +249,32 @@ const Login = () => {
             <div className="mt-6">
               <Link
                 to="/register"
-                className="w-full inline-flex justify-center btn-secondary"
+                className="w-full py-4 px-6 rounded-xl font-bold text-purple-600 text-lg border-2 border-purple-200 hover:border-purple-400 bg-purple-50 hover:bg-purple-100 shadow-md transform transition-all duration-200 hover:scale-105 flex items-center justify-center gap-2"
               >
-                Create an Account
+                <span>Create New Account</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
               </Link>
             </div>
           </div>
         </div>
+        </div>
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <p className="text-xs text-gray-600 mb-4">
+          <p className="text-sm text-white/90 mb-4">
             By signing in, you agree to our{' '}
-            <a href="#" className="text-emerald-600 hover:text-emerald-700 font-medium">Terms of Service</a>
+            <a href="#" className="text-white font-semibold hover:underline">Terms of Service</a>
             {' '}and{' '}
-            <a href="#" className="text-emerald-600 hover:text-emerald-700 font-medium">Privacy Policy</a>
+            <a href="#" className="text-white font-semibold hover:underline">Privacy Policy</a>
           </p>
-          <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
-            <span>🔒 Secure Login</span>
+          <div className="flex items-center justify-center space-x-4 text-sm text-white/80">
+            <span>🔒 Secure</span>
             <span>•</span>
             <span>🏥 HIPAA Compliant</span>
             <span>•</span>
-            <span>🌐 24/7 Access</span>
+            <span>🌐 24/7 Support</span>
           </div>
         </div>
       </div>

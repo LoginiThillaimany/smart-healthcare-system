@@ -58,6 +58,7 @@ const PatientDashboard = () => {
       const patientId = patient._id;
       await api.put(`/patients/${patientId}`, formData);
       setSuccess('Profile updated successfully!');
+      alert('Successfully changed');
       setIsEditing(false);
       fetchPatientData();
     } catch (err) {

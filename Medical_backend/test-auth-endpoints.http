@@ -1,0 +1,246 @@
+### ========================================
+### AUTHENTICATION ENDPOINTS TEST FILE
+### Use with REST Client VS Code Extension
+### Or Thunder Client / Postman
+### ========================================
+
+@baseUrl = http://localhost:5000/api/auth
+@contentType = application/json
+
+### Variables (will be updated after registration/login)
+@token = your-jwt-token-here
+@resetToken = your-reset-token-here
+
+### ========================================
+### 1. REGISTER NEW USER
+### ========================================
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "testuser@example.com",
+  "password": "Test1234!",
+  "firstName": "Test",
+  "lastName": "User",
+  "phone": "+94 77 123 4567",
+  "dateOfBirth": "1995-05-15",
+  "gender": "Male",
+  "address": {
+    "street": "123 Test Street",
+    "city": "Colombo",
+    "state": "Western Province",
+    "zipCode": "10100",
+    "country": "Sri Lanka"
+  }
+}
+
+### ========================================
+### 2. LOGIN
+### ========================================
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "testuser@example.com",
+  "password": "Test1234!"
+}
+
+### ========================================
+### 3. GET CURRENT USER (Protected)
+### Requires: JWT token from login
+### ========================================
+GET {{baseUrl}}/me
+Authorization: Bearer {{token}}
+
+### ========================================
+### 4. LOGOUT (Protected)
+### ========================================
+POST {{baseUrl}}/logout
+Authorization: Bearer {{token}}
+
+### ========================================
+### 5. FORGOT PASSWORD
+### ========================================
+POST {{baseUrl}}/forgot-password
+Content-Type: {{contentType}}
+
+{
+  "email": "testuser@example.com"
+}
+
+### ========================================
+### 6. RESET PASSWORD
+### Use the resetToken from forgot-password response
+### ========================================
+PUT {{baseUrl}}/reset-password/{{resetToken}}
+Content-Type: {{contentType}}
+
+{
+  "password": "NewPassword123!"
+}
+
+### ========================================
+### 7. UPDATE PASSWORD (Protected)
+### User must be logged in
+### ========================================
+PUT {{baseUrl}}/update-password
+Authorization: Bearer {{token}}
+Content-Type: {{contentType}}
+
+{
+  "currentPassword": "Test1234!",
+  "newPassword": "UpdatedPass123!"
+}
+
+### ========================================
+### TEST SCENARIOS
+### ========================================
+
+### Test: Register with existing email (should fail)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "testuser@example.com",
+  "password": "Test1234!",
+  "firstName": "Duplicate",
+  "lastName": "User",
+  "phone": "+94 77 999 9999",
+  "dateOfBirth": "1990-01-01",
+  "gender": "Male",
+  "address": {
+    "street": "456 Test Ave",
+    "city": "Kandy",
+    "zipCode": "20000",
+    "country": "Sri Lanka"
+  }
+}
+
+### Test: Login with wrong password (should fail)
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "testuser@example.com",
+  "password": "WrongPassword123!"
+}
+
+### Test: Access protected route without token (should fail)
+GET {{baseUrl}}/me
+
+### Test: Invalid email format (should fail validation)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "invalid-email",
+  "password": "Test1234!",
+  "firstName": "Invalid",
+  "lastName": "Email",
+  "phone": "+94 77 111 1111",
+  "dateOfBirth": "1992-03-10",
+  "gender": "Female"
+}
+
+### Test: Weak password (should fail validation)
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "weakpass@example.com",
+  "password": "123",
+  "firstName": "Weak",
+  "lastName": "Pass",
+  "phone": "+94 77 222 2222",
+  "dateOfBirth": "1993-07-20",
+  "gender": "Male"
+}
+
+### ========================================
+### ACCOUNT LOCKING TEST
+### Run this 6 times to trigger account lock
+### ========================================
+POST {{baseUrl}}/login
+Content-Type: {{contentType}}
+
+{
+  "email": "testuser@example.com",
+  "password": "WrongPassword!"
+}
+
+### ========================================
+### ADDITIONAL TEST USERS
+### ========================================
+
+### Register Doctor User
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "doctor@example.com",
+  "password": "Doctor1234!",
+  "firstName": "Dr. Sarah",
+  "lastName": "Smith",
+  "phone": "+94 77 888 8888",
+  "dateOfBirth": "1985-08-20",
+  "gender": "Female",
+  "address": {
+    "street": "Medical Complex",
+    "city": "Colombo",
+    "state": "Western Province",
+    "zipCode": "10200",
+    "country": "Sri Lanka"
+  }
+}
+
+### Register Admin User
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "admin@example.com",
+  "password": "Admin1234!",
+  "firstName": "Admin",
+  "lastName": "User",
+  "phone": "+94 77 777 7777",
+  "dateOfBirth": "1980-12-10",
+  "gender": "Male",
+  "address": {
+    "street": "Admin Office",
+    "city": "Colombo",
+    "state": "Western Province",
+    "zipCode": "10300",
+    "country": "Sri Lanka"
+  }
+}
+
+### ========================================
+### EXPECTED RESPONSES
+### ========================================
+
+### Success Response Format:
+# {
+#   "success": true,
+#   "message": "Operation successful message",
+#   "data": {
+#     // Response data
+#   }
+# }
+
+### Error Response Format:
+# {
+#   "success": false,
+#   "message": "Error message",
+#   "error": "Detailed error (development only)"
+# }
+
+### ========================================
+### TESTING NOTES
+### ========================================
+
+# 1. Update @token variable after successful login
+# 2. Update @resetToken after forgot-password
+# 3. Check console for detailed error messages
+# 4. Verify MongoDB for user creation
+# 5. Test account locking by attempting 6 failed logins
+# 6. Wait 2 hours for automatic unlock or reset manually in DB

@@ -20,16 +20,18 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-40">
+    <nav className="bg-white border-b-2 border-gray-200 px-8 py-4 sticky top-0 z-40 shadow-sm">
       <div className="flex items-center justify-between">
         {/* Left Section - Logo & Title */}
-        <div className="flex items-center space-x-4">
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 medical-gradient rounded-lg flex items-center justify-center">
-              <span className="text-white text-xl font-bold">🏥</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900 hidden sm:block">
-              HealthCare System
+        <div className="flex items-center space-x-3">
+          <Link to="/" className="flex items-center space-x-3">
+            <img 
+              src="/logo.svg" 
+              alt="MedicalCare Logo" 
+              className="h-8 w-auto"
+            />
+            <span className="text-xl font-bold text-blue-900 hidden lg:block">
+              MEDICALCARE
             </span>
           </Link>
         </div>

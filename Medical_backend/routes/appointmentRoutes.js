@@ -19,8 +19,9 @@ router.get('/:id', appointmentController.getAppointmentById);
 // Update appointment
 router.put('/:id', appointmentController.updateAppointment);
 
-// Cancel appointment
+// Cancel appointment (support both POST and PUT)
 router.post('/:id/cancel', appointmentController.cancelAppointment);
+router.put('/:id/cancel', appointmentController.cancelAppointment);
 
 // Reschedule appointment
 router.post('/:id/reschedule', appointmentController.rescheduleAppointment);
